@@ -74,6 +74,7 @@ void liberarArvore(No *raiz) {
     }
 }
 
+
 void preOrdem(No *raiz) {
     if (raiz != NULL) {
         printf("%d ", raiz->conteudo); // visita o nó raiz
@@ -98,12 +99,109 @@ void emOrdem(No *raiz) {
     }
 }
 
+typedef struct Pilha {
+    No* no; // aponta para um nó da árvore
+    struct Pilha* prox; // próximo elemento da pilha
+} Pilha;
+
+// Função para empilhar um nó na pilha
+void empilhar(Pilha** topo, No* no) {
+    Pilha* novo = (Pilha*)malloc(sizeof(Pilha)); // aloca memória para um novo elemento da pilha
+    if (novo == NULL) { // verifica se a alocação foi bem-sucedida
+        printf("Erro ao alocar memória para a pilha.\n");
+        exit(1); // encerra o programa em caso de erro
+    }
+    novo->no = no; // o nó atual é armazenado no novo elemento da pilha
+    novo->prox = *topo; // o próximo elemento da pilha será o atual topo
+    *topo = novo; // o novo elemento se torna o topo da pilha
+}
+
+// Função para desempilhar um nó da pilha
+No* desempilhar(Pilha** topo) {
+    if (*topo == NULL) { // se a pilha estiver vazia, retorna NULL
+        return NULL;
+    }
+    Pilha* temp = *topo; // armazena o elemento do topo para liberar a memória depois
+    No* no = temp->no; // obtém o nó armazenado no topo
+    *topo = (*topo)->prox; // o topo da pilha agora aponta para o próximo elemento
+    free(temp); // libera a memória do antigo topo
+    return no; // retorna o nó desempilhado
+}
+
+// Função para verificar se a pilha está vazia
+int pilhaVazia(Pilha* topo) {
+    return topo == NULL; // retorna 1 se a pilha estiver vazia, 0 caso contrário
+}
+
+// Percurso Pré-Ordem Iterativo
+void preOrdemIterativa(No* raiz) {
+    if (raiz == NULL) return; // se a árvore estiver vazia, não faz nada
+
+    Pilha* pilha = NULL; // inicializa a pilha como vazia
+    empilhar(&pilha, raiz); // empilha a raiz
+
+    while (!pilhaVazia(pilha)) { // enquanto a pilha não estiver vazia
+        No* no = desempilhar(&pilha); // desempilha o próximo nó
+        printf("%d ", no->conteudo); // imprime o conteúdo do nó
+
+        // Empilha o nó direito primeiro para garantir que o nó esquerdo seja processado primeiro
+        if (no->dir != NULL) {
+            empilhar(&pilha, no->dir);
+        }
+        if (no->esq != NULL) {
+            empilhar(&pilha, no->esq);
+        }
+    }
+    
+    void emOrdemIterativa(No* raiz) {
+    Pilha* pilha = NULL; // inicializa a pilha como vazia
+    No* atual = raiz; // começa pela raiz da árvore
+
+    while (atual != NULL || !pilhaVazia(pilha)) { // enquanto houver nós para processar
+        while (atual != NULL) { // percorre até o nó mais à esquerda
+            empilhar(&pilha, atual); // empilha todos os nós à esquerda
+            atual = atual->esq;
+        }
+        atual = desempilhar(&pilha); // desempilha o nó mais à esquerda
+        printf("%d ", atual->conteudo); // imprime o conteúdo do nó
+        atual = atual->dir; // muda para a subárvore direita
+    }
+}
+
+void posOrdemIterativa(No* raiz) {
+    if (raiz == NULL) return; // se a árvore estiver vazia, não faz nada
+
+    Pilha* pilha1 = NULL; // primeira pilha para armazenar a ordem dos nós
+    Pilha* pilha2 = NULL; // segunda pilha para armazenar os nós em ordem pós-ordem
+
+    empilhar(&pilha1, raiz); // empilha a raiz na primeira pilha
+    while (!pilhaVazia(pilha1)) { // enquanto a primeira pilha não estiver vazia
+        No* no = desempilhar(&pilha1); // desempilha o próximo nó
+        empilhar(&pilha2, no); // empilha o nó na segunda pilha
+
+        // Empilha os filhos do nó na primeira pilha
+        if (no->esq != NULL) {
+            empilhar(&pilha1, no->esq);
+        }
+        if (no->dir != NULL) {
+            empilhar(&pilha1, no->dir);
+        }
+    }
+
+    // A segunda pilha agora contém os nós em ordem pós-ordem
+    while (!pilhaVazia(pilha2)) {
+        No* no = desempilhar(&pilha2); // desempilha e imprime os nós
+        printf("%d ", no->conteudo);
+    }
+}
+
+
 int main() {
     int op, valor;
     Arvore arv; // objeto arv do tipo Arvore, criamos na linha 8 o tipo Arvore
     arv.raiz = NULL; // estou manipulando o proprio objeto arv denominado na linha de cima
     
-     do {
+    do {
         printf("\n0- Sair\n1- Inserir\n2- Imprimir In-Order\n3- Imprimir Pre-Order\n4- Imprimir Post-Order\n");
         scanf("%d", &op);
         switch(op) {
@@ -117,21 +215,21 @@ int main() {
                 break;
             case 2:
                 printf("\nImpressão em Ordem (In-Order):\n");
-                emOrdem(arv.raiz);
+                emOrdemIterativa(arv.raiz);
                 break;
             case 3:
                 printf("\nImpressão em Pré-Ordem:\n");
-                preOrdem(arv.raiz);
+                preOrdemIterativa(arv.raiz);
                 break;
             case 4:
                 printf("\nImpressão em Pós-Ordem:\n");
-                posOrdem(arv.raiz);
+                posOrdemIterativa(arv.raiz);
                 break;
             default:
                 printf("\nOpção inválida\n");
         }
     } while(op != 0);
 
-    liberarArvore(arv.raiz); // libera a memoria
+    liberarArvore(arv.raiz); // libera a memória
     return 0;
 }
