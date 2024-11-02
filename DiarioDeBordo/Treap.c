@@ -1,3 +1,6 @@
+// Aluno: Gabriel Pádua Almonfrey
+// Turma: CC6N
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
